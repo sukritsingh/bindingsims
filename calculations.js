@@ -816,3 +816,28 @@ var ttable = [
 	2.22814,   2.20099, 2.17881, 2.16037, 2.14479,
 	2.13145,   2.11991, 2.10982, 2.10092, 2.09302
 ];
+
+function alpha(inhib) {
+	switch (inhib) {
+		case "competitive": return 1 + I0 / Ki;
+		case "uncompetitive": return 1;
+		case "mixed": return 1 + I0 / Ki;     // simple mixed (α=α′)
+		default: return 1;
+	}
+}
+
+// initial velocity (steady-state MM)
+function v0(S) {
+	const a = alpha(inhib_mech);
+	return (kcat * E0 * S) / (Km * a + S);
+}
+
+function mm_rate_curve(x) {      // x = substrate conc
+	return v0(x);
+}
+function ic50_to_Ki(ic50, S, Km) {
+	return ic50 / (1 + S / Km);
+}
+function Ki_to_ic50(Ki, S, Km) {
+	return Ki * (1 + S / Km);
+}

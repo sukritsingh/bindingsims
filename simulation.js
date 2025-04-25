@@ -41,6 +41,7 @@ var Q_0 = 1;
 var K_D = 1;
 var K_D2 = 1;
 
+
 var scale_absolute = 1;
 var xscale_alternative = false;
 
@@ -69,6 +70,12 @@ var appmode_ligands   = 0;
 var appmode_receptors = 1;
 var appmode_ligand    = 2;
 var appmode_homodimer = 3;
+var appmode_enzyme = 4;  
+
+
+// parameters
+var S0 = 1, E0 = 1, kcat = 1, Km = 1, I0 = 0, Ki = 1;
+var inhib_mech = "none";
 
 var value_digits = newdecadescale ? 1 : 2;
 
@@ -599,6 +606,13 @@ function slider_input(index, noupdate, nocalculate)
 			unitstr = "l\xA0mol<sup>\u22121</sup>";
 			break;
 		}
+		// slider dispatch  (inside existing switch in slider_input)
+		case 20: S0 = expval_wrap(rawval, index); break;
+		case 21: E0 = expval_wrap(rawval, index); break;
+		case 22: kcat = expval_wrap(rawval, index); break;
+		case 23: Km = expval_wrap(rawval, index); break;
+		case 24: I0 = expval_wrap(rawval, index); break;
+		case 25: Ki = expval_wrap(rawval, index); break;
 	}
 	
 	var abs = Math.abs(val);
