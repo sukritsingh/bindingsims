@@ -1,7 +1,6 @@
 /*
-	PROTEIN THERMODYNAMICS SIMULATIONS
-	Copyright (C) 2021–2023 Johan Pääkkönen, Juha Rouvinen, University of Eastern Finland
-	
+	BINDING SIMULATIONS
+
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
 	as published by the Free Software Foundation; either version 2
@@ -23,7 +22,7 @@
 	(2) https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
-// If you use this in your own research, please cite our paper: https://doi.org/10.1021/acsomega.2c00560
+// If you use this in your own research, please citE: https://doi.org/10.1021/acsomega.2c00560
 
 "use strict";
 
