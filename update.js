@@ -868,36 +868,6 @@ function update(recalculate)
 			
 			break;
 		}
-		case appmode_enzyme: 
-		{
-
-			/* initialise arrays exactly like the other modes */
-			curves[0] = [];   // v vs [S] curve
-			curves[1] = [];   // optional Lineweaver-Burk, etc.
-			curves[2] = [];   // progress-curve, if you build one
-			labels[0] = "v";
-			legends[0] = 0;
-			colours[0] = "rgb(0,102,204)";   // blue, keep palette consistent
-
-			/* build the MM velocity curve */
-			for (let h = decadeshift - 10; h <= decadeshift; h += 1 / 32) {
-				const S = Math.pow(10, h);
-				const v = mm_rate(S);        // your helper from calculations.js
-				curves[0].push({ x: h, y: Math.log10(v) });
-			}
-
-			/* choose axis limits */
-			ymin = decadeshift - 12;
-			ymax = decadeshift;
-			yaxistype = axistype_log;
-
-			/* optional: add vertical guides for Km or [S]0 */
-			// curves[1][0] = { x: Math.log10(Km), y: ymin };
-			// curves[1][1] = { x: Math.log10(Km), y: ymax };
-
-			break;
-		}
-
 	}
 	
 	// #################################################################################################################
@@ -988,12 +958,6 @@ function update(recalculate)
 				
 				ele4.innerHTML += " / <span style=\"color:" + colourstr + "\">" +
 					replace_minus_signs((100 * cd[i] * cm[i] / csum2).toFixed(1)) + "</span>";
-			}
-
-			if (appmode === appmode_enzyme) 
-			{
-				curves = [{ func: mm_rate_curve, colour: "#0066cc", label: "v vs [S]" }];
-				render_curves();            // existing utility
 			}
 			
 			ele1.style.color = (i === 0 && scale_absolute === 2) ? colour1 : colours[i];
