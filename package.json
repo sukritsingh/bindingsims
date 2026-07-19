@@ -1,0 +1,17 @@
+{
+  "name": "bindingsims",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Little sims of binding curves. Dev tooling only; the shipped site is plain static files.",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "golden": "node test/capture/capture.mjs",
+    "serve": "python3 -m http.server 8000"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1",
+    "vitest": "^2.1.8"
+  }
+}
