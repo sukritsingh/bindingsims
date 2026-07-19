@@ -27,8 +27,19 @@
 	If you use this in your own research, please cite our paper: https://doi.org/10.1021/acsomega.2c00560
 */
 
+/* Pin the pages to light rendering: the layout was authored for a white
+   background with default black text and has no dark-mode styling yet, so in
+   OS/browser dark mode the canvas darkens while the text stays black and
+   becomes unreadable. Forcing a light colour-scheme + white background keeps it
+   readable. A proper dark mode is a later step (refactor/05-palette-darkmode). */
+:root
+{
+	color-scheme: light;
+}
+
 body
 {
+	background: #ffffff;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 12pt;
 	
