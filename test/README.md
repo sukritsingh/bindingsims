@@ -29,6 +29,13 @@ npm run test:watch
   modules** — the golden JSON stays frozen.
 - `helpers/scenarios.js` — scenario definitions + `snapshot()` + the deterministic serializers.
 - `helpers/mathCases.js` — input grids for the solvers and the fitter cases.
+- `helpers/compare.js` — tolerant structural comparison. Numbers are matched within a
+  relative tolerance (`1e-3`) rather than bit-exactly. Two things force this across
+  platforms (macOS dev vs Linux CI): `Math.pow`/`log10` differ by ~1 ULP, and a few
+  curve points in the free-protein tail (`[P] = E_0 - v`) are catastrophic-cancellation
+  garbage that isn't bit-reproducible (observed delta ~1.7e-4 on ~11 isolated points).
+  A real behaviour change shifts values by whole percent — far above the tolerance — so
+  it's still caught; the analytic invariants stay tight (`1e-12`) as a second check.
 
 ## Golden discipline
 
