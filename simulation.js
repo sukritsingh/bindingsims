@@ -334,123 +334,6 @@ function decadeshift_blur()
 	ext_dsinput.value = decadeshift;
 }
 
-function render_text_svg(ele, str)
-{
-	var fontfamily = "";
-	var normalfont = "12px";
-	var scriptfont = "10px";
-	
-	var supbl = -4;
-	var subpl = 2.5;
-	
-	var nextchar = 0;
-	var prevchar = -1;
-	var search = 0;
-	var token = "";
-	var baseline = 0;
-	var c;
-	
-	delete_all_children(ele);
-	
-	do
-	{
-		search = str.substr(prevchar + 1).search(/[\uEEE0-\uEEEF]/);
-		nextchar = prevchar + 1 + search;
-		token = str.substring(prevchar + 1, (search === -1) ? undefined : nextchar);
-		
-		c = (prevchar === -1 ? 0xEEE0 : str.charCodeAt(prevchar));
-		
-		function new_textspan(bold, italic, script, align, content)
-		{
-			if(!content) return;
-
-			var span = document.createElementNS(svg_xmlns, "tspan");
-			if(bold) span.style.fontWeight = "bold";
-			if(italic) span.style.fontStyle = "italic";
-			if(script) span.style.fontSize = "10px";
-			if(align - baseline !== 0) span.setAttribute("dy", align - baseline);
-			baseline = align;
-
-			var textnode = document.createTextNode(content);
-			span.appendChild(textnode);
-
-			ele.appendChild(span);
-		}
-
-		switch(c)
-		{
-			case 0xEEE0: // normal
-			{
-				new_textspan(false, false, false, 0, token);
-				break;
-			}
-			case 0xEEE1: // superscript
-			{
-				new_textspan(false, false, true, supbl, token);
-				break;
-			}
-			case 0xEEE2: // subscript
-			{
-				new_textspan(false, false, true, subpl, token);
-				break;
-			}
-			case 0xEEE4: // italic
-			{
-				new_textspan(false, true, false, 0, token);
-				break;
-			}
-			case 0xEEE5: // italic superscript
-			{
-				new_textspan(false, true, true, supbl, token);
-				break;
-			}
-			case 0xEEE6: // italic subscript
-			{
-				new_textspan(false, true, true, subpl, token);
-				break;
-			}
-			case 0xEEE8: // bold normal
-			{
-				new_textspan(true, false, false, 0, token);
-				break;
-			}
-			case 0xEEE9: // bold superscript
-			{
-				new_textspan(true, false, true, supbl, token);
-				break;
-			}
-			case 0xEEEA: // bold subscript
-			{
-				new_textspan(true, false, true, subpl, token);
-				break;
-			}
-			case 0xEEEC: // bold italic
-			{
-				new_textspan(true, true, false, 0, token);
-				break;
-			}
-			case 0xEEED: // bold italic superscript
-			{
-				new_textspan(true, true, true, supbl, token);
-				break;
-			}
-			case 0xEEEE: // bold italic subscript
-			{
-				new_textspan(true, true, true, subpl, token);
-				break;
-			}
-			default:
-			{
-				prevchar = nextchar;
-				continue;
-			}
-		}
-		
-		prevchar = nextchar;
-	}
-	while(search !== -1);
-}
-
 function toggle_calcdiv()
 {
 	var ele1 = document.getElementById("toggle_calcdiv_symbol");
@@ -469,67 +352,6 @@ function toggle_calcdiv()
 		ele2.style.display = "none";
 		ele1.innerHTML = "\u25BC";
 	}
-}
-
-function replace_minus_signs(str)
-{
-	return str.replace(/\u002D/g, "\u2212");
-}
-
-function number_to_superscript(str)
-{
-	return str.replace(/\u002D/g, "\u207B").replace(/\u002B/g, "\u207A").replace(/\u0030/g, "\u2070").replace(/\u0031/g, "\u00B9").replace(/\u0032/g, "\u00B2").replace(/\u0033/g, "\u00B3").replace(/\u0034/g, "\u2074").replace(/\u0035/g, "\u2075").replace(/\u0036/g, "\u2076").replace(/\u0037/g, "\u2077").replace(/\u0038/g, "\u2078").replace(/\u0039/g, "\u2079");
-}
-
-function toFixed2(num, digits)
-{
-	if(digits >= 0)
-	{
-		return num.toFixed(digits);
-	}
-	else
-	{
-		let d = Math.pow(10, Math.max(digits, -Math.floor(Math.log10(num))));
-		return (Math.round(num * d) / d).toFixed(0);
-	}
-}
-
-var decadetable = [
-	10, 11, 12, 13, 14, 15, 16, 17, 18, 20,
-	22, 24, 26, 28, 30, 32, 34, 36, 38, 40,
-	45, 50, 55, 60, 65, 70, 75, 80, 85, 90
-];
-
-function expval(v, e, minexp, maxexp)
-{
-	if(newdecadescale)
-		return decadetable[v % 30] * Math.pow(10, Math.floor(v / 30) - 10 + decadeshift);
-	else
-		return Math.pow(e, minexp + v * (maxexp - minexp) / 240 + decadeshift);
-}
-
-var expparams = [
-	/*  0 */ [0, 0, 0],
-	/*  1 */ [10, -1, 5],
-	/*  2 */ [10, -7, -1],
-	/*  3 */ [10, -9, -1],
-	/*  4 */ [10, 0, 6],
-	/*  5 */ [10, -9, -1],
-	/*  6 */ [10, -5, -1],
-	/*  7 */ [10, -9, -1],
-	/*  8 */ [0, 0, 0],
-	/*  9 */ [10, -9, -1],
-	/* 10 */ [10, -9, -1],
-	/* 11 */ [10, -9, 1],
-	/* 12 */ [10, -5, 5],
-	/* 13 */ [10, -11, -1],
-	/* 14 */ [10, -12, -4],
-	/* 15 */ [10, -12, -4]
-];
-
-function expval_wrap(v, index)
-{
-	return expval(v, expparams[index][0], expparams[index][1], expparams[index][2]);
 }
 
 function slider_input(index, noupdate, nocalculate)
@@ -809,12 +631,6 @@ function data_changed(do_update)
 function extract_px(str)
 {
 	return Number(str.substring(0, str.search("px")));
-}
-
-function zeropad(number, digits)
-{
-	var str = number.toFixed(0);
-	return "0".repeat(str.length < digits ? digits - str.length : 0) + str;
 }
 
 function export_svg()
