@@ -1,0 +1,22 @@
+name: Tests
+
+# Runs the golden test suite on every PR and on pushes to main.
+# The site itself ships as plain static files; this job only exercises the
+# dev-only Vitest + jsdom suite that guards behaviour during the refactor.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm test
