@@ -42,42 +42,37 @@ models before the plate matrix stresses it.
 
 ## 1. Decision points
 
-Grouped into **"please decide"** (real trade-offs I should not silently pick for you) and
-**"decided — FYI"** (trivial / best-practice calls I've made, reversible if you disagree).
+All blocking decisions are now **made** (see §1.1). Plain-English explanations of the concepts
+behind D1 and D3 are in **§10 (Concepts for non-web-developers)** — read that first if any term
+below is unfamiliar. §1.2 lists the smaller best-practice calls.
 
-### 1.1 Please decide
+### 1.1 Decisions made
 
-**D1 — Tooling posture (gates D2, and the test/embedding approach).** Pick one level:
+**D1 — Tooling posture → LEVEL 1 (dev-only node).** Author the code as native **ES modules**
+(`import`/`export`). `npm` is used **only on the developer's machine** to run tests (Vitest + jsdom)
+and, later, to produce the optional embed bundle. **What ships stays plain static files** — `.htm`,
+`.js`, `.css`, no build, no compilation; the files we edit are the files the browser loads. The only
+cost: native ES modules must be *served over HTTP* rather than opened by double-clicking the file
+(see §10.2), so local preview uses a one-line static server (`python3 -m http.server`); every real
+deployment — GitHub Pages, a lab server, an embed — is already HTTP and needs nothing extra.
+(Levels 0 "zero tooling" and 2 "full Vite/TypeScript build" were the alternatives; 0 makes the
+golden test-gate manual and limits embedding to iframes, 2 adds a build step between edit and view.)
 
-| Level | What it means | Pro | Con |
-|---|---|---|---|
-| **0 — zero tooling** | No node/npm. Split into plain `<script>` files with a namespace object. Tests run in-browser (QUnit page). | Nothing to install; `file://` double-click still works. | Weak module isolation; tests are manual/in-browser; no CI; embedding stays iframe-only. |
-| **1 — dev-only node (recommended)** | Author as native **ES modules**. `npm` only for tests (Vitest + jsdom) and optionally a one-command bundle. Site still served as static files. | Real modules, automated tests, CI-able, clean seams for new models. | Native ES modules need HTTP (a `file://` double-click won't load them); one-liner `npx serve` or Python http.server for local preview. Adds `package.json` + dev deps. |
-| **2 — full build** | Vite + (optionally) TypeScript; bundled output. | Best DX, tree-shaking, single-file embeds, type safety. | A build step now stands between "edit" and "see"; heavier for a small educational app. |
+**D2 — Typing → JSDoc-typed JS.** Plain JavaScript annotated with JSDoc comments and type-checked by
+`tsc --checkJs` with **no compile step**. Catches the whole "magic index / wrong species order"
+class of bugs for free. (Full TypeScript was the alternative; only worth it at D1 Level 2.)
 
-**My recommendation: Level 1.** It buys the module boundaries the refactor depends on and makes the
-golden tests automatable, while the shipped site remains plain static files (the bundle in step 06
-is an *extra* artifact, not a requirement to run). Level 0 is viable if you want absolute
-zero-install, but it makes the golden gate manual and keeps embedding limited to iframes. Level 2 is
-overkill unless you later want TypeScript everywhere.
+**D3 — Embedding → iframe now, web component at step 06.** The current static site can already be
+embedded in any other page via an `<iframe>` today (zero code). The nicer, native-feeling
+`<binding-sim model="ligand">` **web component** is built in `refactor/06-embedding`, once the module
+refactor has removed the global-name collisions that make drop-in embedding unsafe. Both are
+documented; iframe is the interim, the component is the destination. See §7 for the mechanics and
+§10.3 for what "iframe" and "web component" mean.
 
-**D2 — Typing.** `plain JS` vs **`JSDoc-typed JS`** (type-checked by `tsc --checkJs`, no compile) vs
-`TypeScript`. Recommendation: **JSDoc-typed JS** at Level 1 — it catches the whole "magic index /
-wrong species order" class of bugs with zero build. Full TS only if D1 = Level 2.
-
-**D3 — Embedding priority (see §7).** Which do you want *first*?
-(a) **iframe** — works today, zero code, isolated, but clunky sizing;
-(b) **drop-in bundle / web component** `<binding-sim model="ligand">` — clean, needs the module
-refactor + a small bundle (Level 1/2).
-Recommendation: **ship (a) immediately as the documented baseline, build (b) in step 06** once
-modules exist. Tell me if web-component embedding is a hard requirement (it firms up D1 toward
-Level 1+).
-
-**D4 — Where new-model *data input* goes (defer, but flag now).** The current fitter reads a
-2-column `x y` textarea. Kinetics (time,signal) fits fine there; the **96-well matrix** needs a
-grid/CSV input and a signal-model (scale/offset). Decision needed only at step 10 — noted so it
-isn't a surprise. Recommendation: keep the textarea for 1-D models, add a paste-a-matrix mode for
-the plate.
+**D4 — New-model data input → deferred to step 10 (decided in principle).** The current fitter reads
+a 2-column `x y` textarea, which suits the 1-D models (incl. kinetics). The **96-well matrix** will
+add a paste-a-matrix / CSV input plus a signal-model (scale/offset). No action until
+`feature/10-plate-matrix`; flagged so it is not a surprise.
 
 ### 1.2 Decided — FYI (say the word to change any)
 
@@ -462,4 +457,86 @@ Shipped alongside the code so the repo teaches its own extension:
   suite blocks bloat; new models are *data* (descriptors), not new control flow.
 - **Scope creep in the plate model** → it is last on purpose, after the framework has absorbed
   families, signal baselines, and vector fitting from the three easier models.
-```
+
+---
+
+## 10. Concepts for non-web-developers
+
+Plain-English background for the terms used above, aimed at a scientist who is not a web developer.
+Nothing here changes the plan; it exists so this document can remind a future reader what the jargon
+means.
+
+### 10.1 How the code loads today, and why globals are a problem
+
+Each page includes scripts with tags like `<script src="calculations.js"></script>`. These are
+*classic scripts*: every `var` and `function` written at the top of the file becomes a **global** — a
+name attached to the browser's shared `window` object and visible to every other script on the page.
+That is *why* the app works today (`update.js` can call `calculate_ligand_total` from
+`calculations.js` because both are globals), and also why it is brittle: any two names can collide,
+and dropping these scripts into someone else's web page risks clashing with *their* code (their page
+might also have a variable called `update` or `S_0`). Removing this global sharing is what makes the
+code safe to embed and easier to test.
+
+### 10.2 ES modules, and "served over HTTP"
+
+- **ES module** — "ES" is *ECMAScript*, the official name for JavaScript. An ES module is simply a
+  `.js` file that uses two keywords: `export` ("here is what this file shares") and `import` ("here is
+  what this file needs"), e.g. `export function expval(){…}` and
+  `import { expval } from './core/expval.js'`. Nothing leaks into the global pool unless explicitly
+  exported. A page opts in with `<script type="module" src="app.js">`. Same JavaScript language — the
+  difference is that dependencies are stated out loud instead of assumed through globals. Benefits:
+  no name collisions (safe embedding), a visible dependency graph, and the ability for a test tool to
+  import one function and test it in isolation.
+
+- **"Served over HTTP"** — When you double-click an HTML file, the browser opens it with a `file://`
+  address. Classic scripts work over `file://`; **ES modules do not** — browsers block modules loaded
+  from `file://` for security reasons. "Served over HTTP" just means the files are delivered by a web
+  server at an `http://`/`https://` address. Two everyday cases, both trivial and both still *just
+  static files*:
+  - **Deploy:** GitHub Pages (`https://…github.io/bindingsims/`), a lab server, etc. — already HTTP,
+    so modules work with zero extra effort.
+  - **Local preview:** run one command in the folder — `python3 -m http.server` — then open
+    `http://localhost:8000/ligand.htm`. That "server" only hands out files; it does no computation.
+  - Files may live in subfolders (`core/`, `models/`); imports use relative paths. "Same origin"
+    means "same website," not "same folder." The only thing lost versus today is *double-click to
+    preview*; the one-line local server replaces it.
+
+- **What "Level 1 tooling" ships** — exactly what ships today: plain `.htm`, `.js`, `.css`, no build,
+  no compilation. `npm`/node is used **only on the developer's machine** to run the test suite; it
+  never touches what a visitor downloads.
+
+### 10.3 Embedding: iframe vs web component
+
+"Embedding" means making a simulation appear *inside another web page* (a lab site, a course page, a
+blog post).
+
+- **iframe (available now).** An `<iframe>` is an HTML tag that embeds one web page inside another,
+  like picture-in-picture. Host bindingsims somewhere, and the other page adds one line:
+  `<iframe src="https://…/ligand.htm" width="700" height="900"></iframe>`. The sim appears in a boxed
+  sub-window. This works with the *current* static site, no code changes. Downsides: it is a
+  fixed-size rectangle you size by hand, it reads as a bolted-on window rather than part of the page,
+  and host↔sim communication is clumsy.
+
+- **Web component (the "clean" embed, step 06).** A web component lets us define our *own* HTML tag.
+  After including one script, the host page writes `<binding-sim model="ligand" kd="1e-6"></binding-sim>`
+  and the sim renders inline like a native element. "Clean" means three concrete things: (a) it sits
+  *in* the page rather than in a boxed iframe; (b) it is configurable through attributes
+  (`model=`, `kd=`); (c) it is shielded from the host page's styles by a browser feature called
+  **Shadow DOM** — a private styling bubble, so the host's CSS cannot accidentally restyle the sim and
+  the sim's CSS cannot leak out. It needs the module refactor first (no global collisions) plus small
+  packaging, which is why it lands in `refactor/06-embedding` rather than now.
+
+### 10.4 The test vocabulary used above
+
+- **Golden / snapshot test** — record the current program's exact outputs (the curve arrays,
+  populations, fit results) to files once, then on every later change re-run and compare against those
+  recorded files. Any difference fails the test. This is how "numerically identical" is enforced.
+- **Unit test** — checks one function in isolation (e.g. "the cubic solver returns the right root").
+- **Contract test** — one test that runs the same invariants over *every* registered model (species
+  count matches solver output, populations conserve mass, etc.), so new models get baseline coverage
+  automatically.
+- **jsdom** — a fake browser environment that runs in the terminal, so tests can exercise the page
+  logic (including SVG DOM) without opening a real browser.
+- **Vitest** — the test runner (the program that finds and executes the tests and reports pass/fail).
+- **CI** — "continuous integration": running the test suite automatically on every push (e.g. via
+  GitHub Actions) so a regression is caught without anyone remembering to run tests by hand.
