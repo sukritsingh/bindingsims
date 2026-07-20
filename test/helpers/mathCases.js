@@ -136,6 +136,12 @@ export const FIT_CASES = {
   'ligand/calcmode3':   { page: 'ligand',    yradio: 2, xradio: 3, free: [7], calcmode: 3, calcoption: 0, data: ligandData },
   'homodimer/calcmode1': { page: 'homodimer', yradio: 2, xradio: 3, free: [7], calcmode: 1, calcoption: 0, data: homodimerData },
   'ligands/calcmode1':  { page: 'ligands',   yradio: 2, xradio: 3, free: [7], calcmode: 1, calcoption: 0, data: ligandsData },
+  // calcmode 4 (extmode "precise iterative" — Jacobian + Gauss-Jordan covariance).
+  // Added before extracting core/fit.js so the covariance path is golden-protected;
+  // the 2-param case exercises the 2x2 matrix inversion. Recovered params land in
+  // the globals (calcmode 4 writes ext_value + globals, not the slider positions).
+  'ligand/calcmode4':    { page: 'ligand',    yradio: 2, xradio: 3, free: [7],    calcmode: 4, calcoption: 0, data: ligandData },
+  'ligand/calcmode4-2p': { page: 'ligand',    yradio: 2, xradio: 3, free: [5, 7], calcmode: 4, calcoption: 0, data: ligandData },
 };
 
 export function buildFitGolden() {

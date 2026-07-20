@@ -75,24 +75,16 @@ function calculate_lsf()
 		}
 	}
 	
-	var theor = [];
-	
 	var slider_indices = [];
 	var sliders = [];
-	var kmin = [];
-	var kmax = [];
-	var kstep = [];
-	var kp = [];
-	var k = [];
+	var kp;
 	var m = [];
-	var fun;
-	var fitdata = {};
-	
-	// Solver dispatch comes from the model registry (models/*.js). fun() evaluates
-	// the model's fitSolve at the current data point, closing over m and i exactly
-	// as the former per-model fun_* closures did.
+
+	// Solver dispatch comes from the model registry (models/*.js). predict(m, x)
+	// evaluates the model's fitSolve at a data point; the numerical fit itself
+	// (grid search + covariance) lives in core/fit.js and never touches the DOM.
 	var model = modelByAppmode(appmode);
-	fun = function() { return model.fitSolve(m, datapoints[i].x, xscale_alternative); };
+	var predict = function(mm, x) { return model.fitSolve(mm, x, xscale_alternative); };
 	
 	var fixvallist = document.getElementsByClassName("fixval");
 	
@@ -154,115 +146,29 @@ function calculate_lsf()
 	
 	if(appmode === appmode_receptors && co === 4) co = 5;
 	
-	for(j = 0; j < (calcmode === 1 ? 2 : 1); j++)
-	{
-		if(j === 0)
-		{
-			for(i = 0; i < sliders.length; i++)
-			{
-				switch(calcmode)
-				{
-					case 1:
-						kmin[i] = Number(sliders[i].min);
-						kmax[i] = Number(sliders[i].max);
-						kstep[i] = 10;
-						break;
-					case 2:
-						kmin[i] = Number(sliders[i].min);
-						kmax[i] = Number(sliders[i].max);
-						kstep[i] = 1;
-						break;
-					case 3:
-						kmin[i] = Math.max(Number(sliders[i].min), Number(sliders[i].value) - 5);
-						kmax[i] = Math.min(Number(sliders[i].max), Number(sliders[i].value) + 5);
-						kstep[i] = 1;
-						break;
-						
-					// extmode only
-					case 4:
-						kstep[i] = sliders[i].ext_value * 0.0001;
-						kmin[i] = sliders[i].ext_value - kstep[i] * 10;
-						kmax[i] = sliders[i].ext_value + kstep[i] * 10.1;
-						break;
-				}
-			}
-		}
-		else
-		{
-			// calcmode is always 1 in this case
-			
-			for(i = 0; i < sliders.length; i++)
-			{
-				kmin[i] = Math.max(Number(sliders[i].min), kp[i] - 20);
-				kmax[i] = Math.min(Number(sliders[i].max), kp[i] + 20);
-				kstep[i] = 1;
-			}
-		}
-		
-		for(i = 0; i < sliders.length; i++)
-		{
-			k[i] = kmin[i];
-		}
-		
-		var loop = true;
-		
-		srsum_min = Number.MAX_VALUE;
-		resid_min = undefined;
-		
-		while(loop)
-		{
-			for(i = 0; i < sliders.length; i++)
-			{
-				if(calcmode === 4)
-				{
-					m[slider_indices[i]] = k[i];
-				}
-				else
-				{
-					m[slider_indices[i]] = expval(k[i],
-						expparams[slider_indices[i]][0],
-						expparams[slider_indices[i]][1],
-						expparams[slider_indices[i]][2]);
-				}
-			}
-			
-			for(i = 0; i < datapoints.length; i++)
-			{
-				var cd = fun();
-				var divisor;
-				
-				if(scale_absolute || appmode === appmode_receptors)
-					divisor = 1;
-				else
-					divisor = cd.d.reduce(function(t,v,i){ return t + v * cd.m[i]; }, 0);
-				
-				theor[i] = {
-					x: datapoints[i].x,
-					y: cd.d[co] / divisor * (scale_absolute || appmode === appmode_receptors ? 1 : cd.m[co])
-				};
-			}
-			
-			fitdata = sum_squared_residuals(datapoints, theor, logresid);
-			
-			if(fitdata.sum < srsum_min)
-			{
-				srsum_min = fitdata.sum;
-				resid_min = fitdata.residuals;
-				kp = k.slice();
-			}
-			
-			for(i = 0; i < sliders.length; i++)
-			{
-				if((k[i] += kstep[i]) <= kmax[i])
-					break;
-				else if(i < sliders.length - 1)
-					k[i] = kmin[i];
-				else
-					loop = false;
-			}
-		}
-	}
+	var cfg = {
+		data: datapoints,
+		predict: predict,
+		m: m,
+		sliderIndices: slider_indices,
+		bounds: sliders.map(function(s) {
+			return { min: Number(s.min), max: Number(s.max), value: Number(s.value), ext_value: s.ext_value };
+		}),
+		calcmode: calcmode,
+		co: co,
+		scale_absolute: scale_absolute,
+		appmode: appmode,
+		appmode_receptors: appmode_receptors,
+		logresid: logresid,
+		expparams: expparams,
+	};
 	
+	var fit_result = gridSearch(cfg);
+	kp = fit_result.kp;
+	resid_min = fit_result.resid_min;
+	srsum_min = fit_result.srsum_min;
+	var kstep = fit_result.kstep;
+
 	var equal_to_initial = true;
 	
 	if(calcmode === 3)
@@ -341,127 +247,14 @@ function calculate_lsf()
 		// https://octave.sourceforge.io/optim/function/nlinfit.html
 		// https://se.mathworks.com/help/stats/nlinfit.html
 		
-		var covb;
-		
-		if(resid_min.length - sliders.length > 0)
-		{
-			// calculate mean square error (mse)
-			
-			let mse = srsum_min / (resid_min.length - sliders.length);
-			
-			// calculate jacobian matrix J
-			
-			let J_rows = resid_min.length;
-			let J_cols = sliders.length;
-			let J = new Array(J_rows * J_cols);
-			
-			for(i = 0; i < sliders.length; i++)
-			{
-				m[slider_indices[i]] = kp[i];
-			}
-			
-			for(i = 0; i < datapoints.length; i++)
-			{
-				for(j = 0; j < sliders.length; j++)
-				{
-					let delta = sliders[j].ext_value * 0.0001;
-					let temp = m[slider_indices[j]];
-					
-					m[slider_indices[j]] = temp - delta;
-					var cd1 = fun();
-					
-					m[slider_indices[j]] = temp + delta;
-					var cd2 = fun();
-					
-					m[slider_indices[j]] = temp;
-					
-					var divisor1, divisor2;
-					
-					if(scale_absolute || appmode === appmode_receptors)
-					{
-						divisor1 = 1;
-						divisor2 = 1;
-					}
-					else
-					{
-						divisor1 = cd1.d.reduce(function(t,v,i){ return t + v * cd1.m[i]; }, 0);
-						divisor2 = cd2.d.reduce(function(t,v,i){ return t + v * cd2.m[i]; }, 0);
-					}
-					
-					let y1 = cd1.d[co] / divisor1 * (scale_absolute || appmode === appmode_receptors ? 1 : cd1.m[co]);
-					let y2 = cd2.d[co] / divisor2 * (scale_absolute || appmode === appmode_receptors ? 1 : cd2.m[co]);
-					
-					if(logresid)
-						J[i * J_cols + j] = 1e-5 * Math.log(y2 / y1) / (2 * delta);
-					else
-						J[i * J_cols + j] = (y2 - y1) / (2 * delta);
-				}
-			}
-			
-			// calculate J'*J, make an augmented matrix for Gauss-Jordan
-			
-			let JJ = new Array(J_cols * J_cols * 2);
-			
-			for(j = 0; j < J_cols; j++)
-			for(i = 0; i < J_cols; i++)
-			{
-				let t = 0;
-				
-				for(n = 0; n < J_rows; n++)
-				{
-					t += J[n * J_cols + i] * J[n * J_cols + j];
-				}
-				
-				JJ[j * 2 * J_cols + i] = t;
-				JJ[j * 2 * J_cols + i + J_cols] = (i == j) ? 1 : 0;
-			}
-			
-			// invert J'*J using Gauss-Jordan elimination
-			// (this is surprisingly simple, though it could be written to be clearer)
-			// (this may be numerically unstable, but I have not yet run into major issues)
-			
-			function subtract_row(r1, r2, f)
-			{
-				let i;
-				for(i = 0; i < 2 * J_cols; i++)
-				{
-					JJ[r1 * 2 * J_cols + i] -= f * JJ[r2 * 2 * J_cols + i];
-				}
-			}
-			
-			for(i = 0; i < J_cols; i++)
-			{
-				for(j = i; j < J_cols; j++)
-				{
-					subtract_row(j, i, (JJ[j * 2 * J_cols + i] - (i == j ? 1 : 0)) / JJ[i * 2 * J_cols + i]);
-				}
-			}
-			
-			for(i = J_cols - 1; i >= 0; i--)
-			{
-				for(j = i - 1; j >= 0; j--)
-				{
-					subtract_row(j, i, JJ[j * 2 * J_cols + i] / JJ[i * 2 * J_cols + i]);
-				}
-			}
-			
-			// calculate the variance-covariance matrix
-			
-			covb = new Array(J_cols * J_cols);
-			
-			for(j = 0; j < J_cols; j++)
-			for(i = 0; i < J_cols; i++)
-			{
-				covb[j * J_cols + i] = JJ[j * 2 * J_cols + i + J_cols] * mse;
-			}
-			
-			/*
-			console.log(mse);
-			console.log(J);
-			console.log(JJ);
-			console.log(covb);
-			*/
-		}
+		// The Jacobian + Gauss-Jordan covariance now lives in core/fit.js. Re-read the
+		// (just-written) ext_values into cfg.bounds so the finite-difference deltas match.
+		cfg.bounds = sliders.map(function(s) {
+			return { min: Number(s.min), max: Number(s.max), value: Number(s.value), ext_value: s.ext_value };
+		});
+		cfg.srsum_min = srsum_min;
+		cfg.resid_min = resid_min;
+		var covb = covariance(cfg, kp);
 		
 		for(i = 0; i < sliders.length; i++)
 		{
