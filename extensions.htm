@@ -54,14 +54,16 @@
 			<p>When the extensions are not enabled, the applets behave exactly like the original version
 			except for the short paragraph about the extensions.</p>
 			
-			<h2>Decade shift</h2>
+			<h2>Shift concentration range (the &ldquo;decade shift&rdquo;)</h2>
 			
-			<p>The decade shift setting can be used to shift the ranges of all sliders and graph axes
-			by integer orders of magnitude. These happen to cancel each other out so that there is no visual change
-			in the graphs other than the numbers on axes and possible data points.
-			Possible values are between &minus;9 and +4 inclusive.
-			This feature was added to allow going to smaller concentrations than 10<sup>&minus;9</sup>&nbsp;mol&nbsp;l<sup>&minus;1</sup>
-			while complicating the applet as little as possible.</p>
+			<p>This setting (labelled &ldquo;Shift concentration range&rdquo; on the simulation pages) shifts the ranges of all
+			sliders and graph axes up or down by whole orders of magnitude &mdash; powers of ten, where one
+			&ldquo;decade&rdquo; is a factor of 10. The default value 0 spans roughly nanomolar to millimolar
+			(10<sup>&minus;9</sup> to 10<sup>&minus;1</sup>&nbsp;mol&nbsp;l<sup>&minus;1</sup>); a positive value lets you
+			explore higher-concentration, weaker-affinity regimes, and a negative value reaches lower concentrations
+			(picomolar and below) for very tight binders. Possible values are between &minus;9 and +4 inclusive.
+			Because the sliders and the axes shift together, the curves themselves do not move &mdash;
+			only the numbers on the axes (and any plotted data points) change.</p>
 			
 			<h2>Precise iterative search</h2>
 			

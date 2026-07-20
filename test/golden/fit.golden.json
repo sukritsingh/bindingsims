@@ -90,5 +90,83 @@
       "S_0": 0.0000022,
       "Q_0": 1
     }
+  },
+  "receptors/calcmode1": {
+    "sliders": {
+      "slider7": "90"
+    },
+    "status": "Calculation finished.",
+    "globals": {
+      "K_D": 0.000001,
+      "K_D2": 0.0000022,
+      "E_0": 0.0000022,
+      "S_0": 0.0000022,
+      "Q_0": 0.0000022
+    }
+  },
+  "receptors/calcmode2": {
+    "sliders": {
+      "slider7": "90"
+    },
+    "status": "Calculation finished.",
+    "globals": {
+      "K_D": 0.000001,
+      "K_D2": 0.0000022,
+      "E_0": 0.0000022,
+      "S_0": 0.0000022,
+      "Q_0": 0.0000022
+    }
+  },
+  "receptors/calcmode3": {
+    "sliders": {
+      "slider7": "90"
+    },
+    "status": "Calculation finished.",
+    "globals": {
+      "K_D": 0.000001,
+      "K_D2": 0.0000022,
+      "E_0": 0.0000022,
+      "S_0": 0.0000022,
+      "Q_0": 0.0000022
+    }
+  },
+  "receptors/calcmode1-co1": {
+    "sliders": {
+      "slider7": "90"
+    },
+    "status": "Calculation finished.",
+    "globals": {
+      "K_D": 0.000001,
+      "K_D2": 0.0000022,
+      "E_0": 0.0000022,
+      "S_0": 0.0000022,
+      "Q_0": 0.0000022
+    }
+  },
+  "ligand/calcmode1-logresid": {
+    "sliders": {
+      "slider7": "90"
+    },
+    "status": "Calculation finished.",
+    "globals": {
+      "K_D": 0.000001,
+      "K_D2": 1,
+      "E_0": 0.0000022,
+      "S_0": 0.0000022,
+      "Q_0": 1
+    }
+  },
+  "ligand/calcmode4-logresid": {
+    "sliders": {
+      "slider7": "90"
+    },
+    "status": "Calculation finished.",
+    "globals": {
+      "K_D": 0.000001,
+      "K_D2": 1,
+      "E_0": 0.0000022,
+      "S_0": 0.0000022,
+      "Q_0": 1
+    }
   }
 }
