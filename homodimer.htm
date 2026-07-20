@@ -72,21 +72,21 @@
 			</table>
 			<table>
 				<tr id="ext_dsrow">
-					<td>Decade shift:</td>
-					<td><input type="number" min="-9" max="4" value="0" class="radio" id="ext_dsinput" /></td>
+					<td title="Slides the slider and plot range up or down by whole orders of magnitude (powers of ten). 0 = default (~nM to mM); use + or - to explore higher or lower concentrations.">Shift concentration range (powers of 10):</td>
+					<td><input type="number" min="-9" max="4" value="0" class="radio" id="ext_dsinput" title="Slides the slider and plot range up or down by whole orders of magnitude (powers of ten). 0 = default (~nM to mM); use + or - to explore higher or lower concentrations." /></td>
 				</tr>
 				<tr>
 					<td>Vertical scale:</td>
 					<td>
-						<label><input id="radio1" name="yaxis" class="radio" type="radio" onchange="radio_input(1);" checked />&nbsp;Absolute</label><br />
-						<label><input id="radio2" name="yaxis" class="radio" type="radio" onchange="radio_input(2);" />&nbsp;Relative</label>
+						<label title="Species concentrations (mol/L)"><input id="radio1" name="yaxis" class="radio" type="radio" onchange="radio_input(1);" checked />&nbsp;Absolute</label><br />
+						<label title="Fractional occupancy of the protein (0 to 1)"><input id="radio2" name="yaxis" class="radio" type="radio" onchange="radio_input(2);" />&nbsp;Relative</label>
 					</td>
 				</tr>
 				<tr>
 					<td>Horizontal axis:</td>
 					<td>
-						<label><input id="radio3" name="xaxis" class="radio" type="radio" onchange="radio_input(3);" checked />&nbsp;Total protein concentration</label><br />
-						<label><input id="radio4" name="xaxis" class="radio" type="radio" onchange="radio_input(4);" />&nbsp;Free protein concentration</label>
+						<label title="Total (added) protein concentration"><input id="radio3" name="xaxis" class="radio" type="radio" onchange="radio_input(3);" checked />&nbsp;Total protein concentration</label><br />
+						<label title="Free (unbound) protein concentration"><input id="radio4" name="xaxis" class="radio" type="radio" onchange="radio_input(4);" />&nbsp;Free protein concentration</label>
 					</td>
 				</tr>
 			</table>
