@@ -30,20 +30,13 @@
 function update(recalculate)
 {
 	var figure = document.getElementById("figure_svg");
-	var figure_piegroup = document.getElementById("svg_piegroup");
-	var figure_curvegroup = document.getElementById("svg_curvegroup");
-	var figure_datapointgroup = document.getElementById("svg_datapointgroup");
-	var figure_overlaygroup = document.getElementById("svg_overlaygroup");
-	var figure_linegroup = document.getElementById("svg_linegroup");
-	var figure_legendgroup = document.getElementById("svg_legendgroup");
-	var figure_scribblegroup = document.getElementById("svg_scribblegroup");
 	
 	var figure_div = document.getElementById("figure_div");
 	var cwidth = extract_px(figure_div.style.width) * 0.96;
 	var cheight = extract_px(figure_div.style.height);
 	var cminwidth = extract_px(figure_div.style.minWidth) * 0.96;
 	var cminheight = extract_px(figure_div.style.minHeight);
-
+	
 	if(cwidth < cminwidth)
 	{
 		figure_div.style.width = figure_div.style.minWidth;
@@ -55,7 +48,7 @@ function update(recalculate)
 		figure_div.style.height = figure_div.style.minHeight;
 		cheight = cminheight;
 	}
-
+	
 	figure.setAttribute("viewBox", "0 0 " + cwidth + " " + cheight);
 	
 	if(recalculate === undefined) recalculate = true;
@@ -67,27 +60,40 @@ function update(recalculate)
 	var ca_width = cwidth - ca_left - ca_right;
 	var ca_height = cheight - ca_top - ca_bottom;
 	
+	// Refactor step 02 (render-split): update() orchestrates; buildFigure()
+	// computes the data model (curves/pie/labels/axes) and renderFigure() draws
+	// it. Shared layout + palette + the current-value datapoint travel in ctx;
+	// the figure-data globals (curves, pie, xmin..ymax, ...) are still shared as
+	// today. Bodies moved verbatim.
+	var ctx = {
+		cwidth: cwidth, cheight: cheight,
+		ca_left: ca_left, ca_right: ca_right, ca_top: ca_top, ca_bottom: ca_bottom,
+		ca_width: ca_width, ca_height: ca_height,
+		colour1: "rgb(255,0,0)",
+		colour2: "rgb(0,0,255)",
+		colour3: "rgb(0,128,0)",
+		colour4: "rgb(128,0,128)",
+		colour5: "rgb(170,85,0)",
+		colour6: "rgb(255,128,0)",
+		colour7: "rgb(128,128,128)",
+	};
+	
+	buildFigure(ctx, recalculate);
+	renderFigure(ctx);
+}
+
+function buildFigure(ctx, recalculate)
+{
+	var { ca_height, colour1, colour2, colour3, colour4, colour5, colour6, colour7 } = ctx;
+	
 	var c = 0;
 	var v = 0;
 	var h = 0;
 	var t = 0;
-	var S = S_0;
-	var S_eq = 0;
-	var S_eff = S;
 	
 	var cd = undefined;
 	var cm = undefined;
 	var masses = undefined;
-	
-	var ele_id = "", ele2_id = "";
-	
-	var colour1 = "rgb(255,0,0)";
-	var colour2 = "rgb(0,0,255)";
-	var colour3 = "rgb(0,128,0)";
-	var colour4 = "rgb(128,0,128)";
-	var colour5 = "rgb(170,85,0)";
-	var colour6 = "rgb(255,128,0)";
-	var colour7 = "rgb(128,128,128)";
 	
 	if(recalculate) switch(appmode)
 	{
@@ -871,7 +877,29 @@ function update(recalculate)
 		}
 	}
 	
-	// #################################################################################################################
+	ctx.cd = cd;
+	ctx.cm = cm;
+	ctx.masses = masses;
+}
+
+function renderFigure(ctx)
+{
+	var { cwidth, cheight, ca_left, ca_top, ca_width, ca_height, colour1, colour2, cd, cm, masses } = ctx;
+	
+	var figure_piegroup = document.getElementById("svg_piegroup");
+	var figure_curvegroup = document.getElementById("svg_curvegroup");
+	var figure_datapointgroup = document.getElementById("svg_datapointgroup");
+	var figure_overlaygroup = document.getElementById("svg_overlaygroup");
+	var figure_linegroup = document.getElementById("svg_linegroup");
+	var figure_legendgroup = document.getElementById("svg_legendgroup");
+	var figure_scribblegroup = document.getElementById("svg_scribblegroup");
+	
+	var c = 0;
+	var v = 0;
+	var h = 0;
+	var t = 0;
+	
+	var ele_id = "", ele2_id = "";
 	
 	if(cd !== undefined && cm !== undefined)
 	{
