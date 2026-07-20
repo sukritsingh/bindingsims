@@ -1570,39 +1570,15 @@ function renderFigure(ctx)
 			return "10\uEEE1" + replace_minus_signs(magnitude.toString()) + "\uEEE0" + (no_trailing_space === true ? "" : " ");
 	}
 	
-	switch(appmode)
-	{
-		case appmode_ligand:
-		{
-			xlabelstr = (xscale_alternative ? "Free" : "Total") + " ligand concentration (" + magnitude_string(xmagnitude) + "mol l\uEEE1\u22121\uEEE0)";
-			ylabelstr = scale_absolute ? "Protein species concentration (mol l\uEEE1\u22121\uEEE0)" : "Relative protein species amount";
-			break;
-		}
-		case appmode_homodimer:
-		{
-			xlabelstr = (xscale_alternative ? "Free" : "Total") + " protein concentration (" + magnitude_string(xmagnitude) + "mol l\uEEE1\u22121\uEEE0)";
-			ylabelstr = scale_absolute ? "Protein species concentration (mol l\uEEE1\u22121\uEEE0)" : "Relative protein species amount";
-			break;
-		}
-		case appmode_ligands:
-		{
-			xlabelstr = (xscale_alternative ? "Total ligand L" : "Total protein P") + " concentration (mol l\uEEE1\u22121\uEEE0)";
-			ylabelstr = scale_absolute ? "Protein species concentration (mol l\uEEE1\u22121\uEEE0)" : "Relative protein species amount";
-			break;
-		}
-		case appmode_receptors:
-		{
-			xlabelstr = (xscale_alternative ? "Free" : "Total") + " ligand L concentration (" + magnitude_string(xmagnitude) + "mol l\uEEE1\u22121\uEEE0)";
-			// ylabelstr = scale_absolute ? "Protein species concentration (mol l\uEEE1\u22121\uEEE0)" : "Protein species concentration (" + magnitude_string(ymagnitude) + "mol l\uEEE1\u22121\uEEE0)";
-			switch(scale_absolute)
-			{
-				case 2: ylabelstr = "Receptor P specificity" + (ymagnitude ? " / " + magnitude_string(ymagnitude, true) : ""); break;
-				case 1: ylabelstr = "Protein species concentration (mol l\uEEE1\u22121\uEEE0)"; break;
-				case 0: ylabelstr = "Protein species concentration (" + magnitude_string(ymagnitude) + "mol l\uEEE1\u22121\uEEE0)"; break;
-			}
-			break;
-		}
-	}
+	var axis_labels = modelByAppmode(appmode).axisLabels({
+		xscale_alternative: xscale_alternative,
+		scale_absolute: scale_absolute,
+		xmagnitude: xmagnitude,
+		ymagnitude: ymagnitude,
+		magnitude_string: magnitude_string,
+	});
+	xlabelstr = axis_labels.x;
+	ylabelstr = axis_labels.y;
 	
 	ele_id = "svg_xaxislabel";
 	var svg_label = document.getElementById(ele_id);

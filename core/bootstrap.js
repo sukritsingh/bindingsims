@@ -44,5 +44,13 @@
 import * as expvalMod from './expval.js';
 import * as solversMod from './solvers.js';
 import * as formatMod from './format.js';
+import { models, modelByAppmode, datalabels } from '../models/index.js';
 
 Object.assign(window, expvalMod, solversMod, formatMod);
+
+// The model registry (refactor/03). The classic code calls modelByAppmode(...)
+// for the fitter's solver dispatch and the axis titles, and reads datalabels[]
+// (now derived from the registry instead of defined in calculations.js).
+window.models = models;
+window.modelByAppmode = modelByAppmode;
+window.datalabels = datalabels;
