@@ -94,13 +94,16 @@ function setRadioGroup(w, name, id) {
 }
 
 function runFit(cfg) {
-  const w = loadSim(cfg.page);
+  const w = loadSim(cfg.page, { ext: !!cfg.ext });
   w.radio_input(cfg.yradio, true);
   w.radio_input(cfg.xradio, true);
 
   const data = cfg.data(w);
   w.document.getElementById('databox').value = data.map(d => d.x + ' ' + d.y).join('\n');
   w.data_changed(false);
+
+  // extmode-only: logarithmic residuals (needs the page loaded with ?ext).
+  if (cfg.logresid) w.document.getElementById('ext_calcmode_log').checked = true;
 
   for (const idx of cfg.free) {
     const cb = w.document.getElementById('fixval' + idx);
@@ -130,6 +133,11 @@ const homodimerData = w => [1e-8, 1e-7, 3e-7, 1e-6, 3e-6, 1e-5, 1e-4]
 const ligandsData = w => [1e-8, 1e-7, 3e-7, 1e-6, 3e-6, 1e-5, 1e-4]
   .map(x => { const d = w.calculate_ligands(x, w.Q_0, w.S_0, 1e-6, w.K_D2).d; return { x, y: d[0] / (d[0] + d[1] + d[2]) }; });
 
+// Competing receptors: absolute concentration of species column `col` (receptors
+// fit uses divisor = 1), matching modelByAppmode(receptors).fitSolve non-alt.
+const receptorsData = col => w => [1e-8, 1e-7, 3e-7, 1e-6, 3e-6, 1e-5, 1e-4]
+  .map(x => { const d = w.calculate_ligands(x, w.Q_0, w.S_0, 1e-6, w.K_D2).d; return { x, y: d[col] }; });
+
 export const FIT_CASES = {
   'ligand/calcmode1':   { page: 'ligand',    yradio: 2, xradio: 3, free: [7], calcmode: 1, calcoption: 0, data: ligandData },
   'ligand/calcmode2':   { page: 'ligand',    yradio: 2, xradio: 3, free: [7], calcmode: 2, calcoption: 0, data: ligandData },
@@ -142,6 +150,16 @@ export const FIT_CASES = {
   // the globals (calcmode 4 writes ext_value + globals, not the slider positions).
   'ligand/calcmode4':    { page: 'ligand',    yradio: 2, xradio: 3, free: [7],    calcmode: 4, calcoption: 0, data: ligandData },
   'ligand/calcmode4-2p': { page: 'ligand',    yradio: 2, xradio: 3, free: [5, 7], calcmode: 4, calcoption: 0, data: ligandData },
+  // Gap coverage for the fitter paths the earlier cases missed:
+  //   - the competing-receptors solver dispatch (appmode === receptors, divisor = 1)
+  //   - a co != 0 species column ([P'L] via calcoption 1)
+  //   - logarithmic residuals (extmode), for both the grid search and calcmode-4 covariance
+  'receptors/calcmode1':       { page: 'receptors', yradio: 5, xradio: 3, free: [7], calcmode: 1, calcoption: 0, data: receptorsData(0) },
+  'receptors/calcmode2':       { page: 'receptors', yradio: 5, xradio: 3, free: [7], calcmode: 2, calcoption: 0, data: receptorsData(0) },
+  'receptors/calcmode3':       { page: 'receptors', yradio: 5, xradio: 3, free: [7], calcmode: 3, calcoption: 0, data: receptorsData(0) },
+  'receptors/calcmode1-co1':   { page: 'receptors', yradio: 5, xradio: 3, free: [7], calcmode: 1, calcoption: 1, data: receptorsData(1) },
+  'ligand/calcmode1-logresid': { page: 'ligand', yradio: 2, xradio: 3, free: [7], calcmode: 1, calcoption: 0, data: ligandData, ext: true, logresid: true },
+  'ligand/calcmode4-logresid': { page: 'ligand', yradio: 2, xradio: 3, free: [7], calcmode: 4, calcoption: 0, data: ligandData, ext: true, logresid: true },
 };
 
 export function buildFitGolden() {
