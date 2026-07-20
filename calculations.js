@@ -27,12 +27,9 @@
 
 "use strict";
 
-var datalabels = [];
-
-datalabels[appmode_ligand] = ["[PL]", "[P]"];
-datalabels[appmode_homodimer] = ["[P<sub>2</sub>]", "[P]"];
-datalabels[appmode_ligands] = ["[PL]", "[PL\u2032]", "[P]"];
-datalabels[appmode_receptors] = ["[PL]", "[P\u2032L]", "[P]", "[P\u2032]"];
+// `datalabels` and the per-model solver dispatch now come from the model
+// registry (models/index.js), exposed on window by core/bootstrap.js. See the
+// use of modelByAppmode() in calculate_lsf below.
 
 function calculate_lsf()
 {
@@ -91,80 +88,11 @@ function calculate_lsf()
 	var fun;
 	var fitdata = {};
 	
-	function fun_ligand_free()
-	{
-		return calculate_ligand_free(m[5], datapoints[i].x, m[7]);
-	}
-	
-	function fun_ligand_total()
-	{
-		return calculate_ligand_total(m[5], datapoints[i].x, m[7]);
-	}
-	
-	function fun_homodimer_free()
-	{
-		return calculate_homodimer_free(datapoints[i].x, m[7]);
-	}
-	
-	function fun_homodimer_total()
-	{
-		return calculate_homodimer(datapoints[i].x, m[7]);
-	}
-	
-	function fun_ligands()
-	{
-		return calculate_ligands(datapoints[i].x, m[10], m[3], m[7], m[9]);
-	}
-	
-	function fun_ligands_alt()
-	{
-		return calculate_ligands(m[5], datapoints[i].x, m[3], m[7], m[9]);
-	}
-	
-	function fun_ligands_free()
-	{
-		return calculate_ligands_free(datapoints[i].x, m[10], m[3], m[7], m[9]);
-	}
-	
-	switch(appmode)
-	{
-		case appmode_ligand:
-		{
-			if(xscale_alternative)
-				fun = fun_ligand_free;
-			else
-				fun = fun_ligand_total;
-			break;
-		}
-		case appmode_homodimer:
-		{
-			if(xscale_alternative)
-				fun = fun_homodimer_free;
-			else
-				fun = fun_homodimer_total;
-			break;
-		}
-		case appmode_ligands:
-		{
-			if(xscale_alternative)
-				fun = fun_ligands_alt;
-			else
-				fun = fun_ligands;
-			break;
-		}
-		case appmode_receptors:
-		{
-			if(xscale_alternative)
-				fun = fun_ligands_free;
-			else
-				fun = fun_ligands;
-			break;
-		}
-		default:
-		{
-			break;
-		}
-	}
+	// Solver dispatch comes from the model registry (models/*.js). fun() evaluates
+	// the model's fitSolve at the current data point, closing over m and i exactly
+	// as the former per-model fun_* closures did.
+	var model = modelByAppmode(appmode);
+	fun = function() { return model.fitSolve(m, datapoints[i].x, xscale_alternative); };
 	
 	var fixvallist = document.getElementsByClassName("fixval");
 	

@@ -25,6 +25,7 @@ import { fileURLToPath } from 'node:url';
 import * as expvalMod from '../../core/expval.js';
 import * as solversMod from '../../core/solvers.js';
 import * as formatMod from '../../core/format.js';
+import { models, modelByAppmode, datalabels } from '../../models/index.js';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -94,6 +95,12 @@ export function loadSim(pageKey, opts = {}) {
   // the moved functions on it, so the classic code can call them by bare name.
   activeWindow = window;
   Object.assign(window, expvalMod, solversMod, formatMod);
+
+  // Model registry (refactor/03), mirroring core/bootstrap.js: the classic code
+  // reads modelByAppmode(...) and datalabels[] off the window.
+  window.models = models;
+  window.modelByAppmode = modelByAppmode;
+  window.datalabels = datalabels;
 
   window.preinit(window[page.appmode]);
   window.init();
