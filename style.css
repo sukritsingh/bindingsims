@@ -27,25 +27,67 @@
 	If you use this in your own research, please cite our paper: https://doi.org/10.1021/acsomega.2c00560
 */
 
-/* Pin the pages to light rendering: the layout was authored for a white
-   background with default black text and has no dark-mode styling yet, so in
-   OS/browser dark mode the canvas darkens while the text stays black and
-   becomes unreadable. Forcing a light colour-scheme + white background keeps it
-   readable. A proper dark mode is a later step (refactor/05-palette-darkmode). */
+/* Light/dark theme tokens (refactor/05). The default :root is the original light
+   look, so the pages are unchanged unless the visitor opts into dark via the
+   toggle button (see theme.js, which sets data-theme on <html> and persists it).
+   Only the page chrome is themed; the plot figure stays a light card in both
+   themes, so figures and the golden tests are unaffected. */
 :root
 {
 	color-scheme: light;
+	--bg: #ffffff;
+	--fg: #000000;
+	--muted: hsl(0, 0%, 50%);
+	--muted-2: hsl(0, 0%, 66.66%);
+	--border: hsl(0, 0%, 80%);
+	--table-border: #000000;
+	--link: #1a0dab;
+	--btn-bg: hsl(0, 0%, 95%);
+	--btn-border: hsl(0, 0%, 70%);
+}
+
+:root[data-theme="dark"]
+{
+	color-scheme: dark;
+	--bg: #1b1b1d;
+	--fg: #e7e7e7;
+	--muted: hsl(0, 0%, 62%);
+	--muted-2: hsl(0, 0%, 45%);
+	--border: hsl(0, 0%, 35%);
+	--table-border: hsl(0, 0%, 45%);
+	--link: #7ab7ff;
+	--btn-bg: hsl(0, 0%, 20%);
+	--btn-border: hsl(0, 0%, 40%);
 }
 
 body
 {
-	background: #ffffff;
+	background: var(--bg);
+	color: var(--fg);
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 12pt;
-	
+
 	-moz-text-size-adjust: none;
 	-webkit-text-size-adjust: none;
 	text-size-adjust: none;
+}
+
+a
+{
+	color: var(--link);
+}
+
+#theme_toggle
+{
+	float: right;
+	margin: 0.25em 0 0.25em 1em;
+	padding: 0.35em 0.8em;
+	font: inherit;
+	color: var(--fg);
+	background: var(--btn-bg);
+	border: 1px solid var(--btn-border);
+	border-radius: 5px;
+	cursor: pointer;
 }
 
 .valuecol
@@ -76,7 +118,7 @@ body
 
 .grey
 {
-	color: hsl(0, 0%, 50%);
+	color: var(--muted);
 }
 
 #slidertable td:nth-child(4)
@@ -114,7 +156,8 @@ input[type=text]
 	min-height: 300px;
 	resize: both;
 	overflow: hidden;
-	border: 1px dotted hsl(0, 0%, 80%);
+	border: 1px dotted var(--border);
+	background: #ffffff;   /* the plot is always a light card, in both themes */
 	padding: 0;
 }
 
@@ -164,7 +207,7 @@ input[type=text]
 
 input:disabled + span
 {
-	color: hsl(0, 0%, 66.666666666666666%);
+	color: var(--muted-2);
 }
 
 #datatable
@@ -175,13 +218,13 @@ input:disabled + span
 
 #datatable tr th
 {
-	border-bottom: solid 1px black;
+	border-bottom: solid 1px var(--table-border);
 }
 
 #datatable th, #datatable td
 {
 	padding: 1px 1em 1px 0.2em;
-	border-right: solid 1px black;
+	border-right: solid 1px var(--table-border);
 }
 
 #datatable th, #datatable td:first-of-type
