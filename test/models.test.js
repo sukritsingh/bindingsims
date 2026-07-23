@@ -25,7 +25,7 @@ test('legacy appmode ids are unique and round-trip through modelByAppmode', () =
 test('datalabels export mirrors each descriptor by legacy appmode', () => {
   for (const [, m] of entries) {
     expect(Array.isArray(m.datalabels)).toBe(true);
-    expect(m.datalabels.length).toBeGreaterThan(0);
+    // may be empty for rate models with no species table (e.g. inhibition)
     for (const label of m.datalabels) expect(typeof label).toBe('string');
     expect(datalabels[m.legacyAppmode]).toBe(m.datalabels);
   }

@@ -27,6 +27,7 @@ import * as solversMod from '../../core/solvers.js';
 import * as formatMod from '../../core/format.js';
 import * as fitMod from '../../core/fit.js';
 import { models, modelByAppmode, datalabels } from '../../models/index.js';
+import { enzyme_rate, ic50 } from '../../models/inhibition.js';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -41,6 +42,7 @@ export const PAGES = {
   homodimer:  { file: 'homodimer.htm',  appmode: 'appmode_homodimer' },
   ligands:    { file: 'ligands.htm',    appmode: 'appmode_ligands' },
   receptors:  { file: 'receptors.htm',  appmode: 'appmode_receptors' },
+  inhibition: { file: 'inhibition.htm', appmode: 'appmode_enzyme' },
 };
 
 const SCRIPTS = ['simulation.js', 'calculations.js', 'update.js'];
@@ -54,6 +56,7 @@ const BRIDGED_GLOBALS = [
   'appmode', 'appmode_ligands',           // solvers.js
   'svg_xmlns', 'delete_all_children',     // format.js
   'document',                             // format.js (render_text_svg)
+  'inhib_mech',                           // models/inhibition.js (fitSolve dispatch)
 ];
 
 let activeWindow = null;
@@ -102,6 +105,8 @@ export function loadSim(pageKey, opts = {}) {
   window.models = models;
   window.modelByAppmode = modelByAppmode;
   window.datalabels = datalabels;
+  window.enzyme_rate = enzyme_rate;   // feature/07: buildFigure enzyme case
+  window.ic50 = ic50;
 
   window.preinit(window[page.appmode]);
   window.init();

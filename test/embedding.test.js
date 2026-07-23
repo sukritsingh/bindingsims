@@ -48,7 +48,7 @@ test('renders an isolated iframe pointing at the model page', () => {
 
 test('all four models resolve to their pages', () => {
   const w = makeWindow();
-  for (const m of ['ligand', 'homodimer', 'ligands', 'receptors']) {
+  for (const m of ['ligand', 'homodimer', 'ligands', 'receptors', 'inhibition']) {
     const el = mount(w, { model: m });
     expect(el.shadowRoot.querySelector('iframe').src).toBe('http://localhost/app/' + m + '.htm');
   }

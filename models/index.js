@@ -34,8 +34,9 @@ import { ligand } from './ligand.js';
 import { homodimer } from './homodimer.js';
 import { ligands } from './competing-ligands.js';
 import { receptors } from './competing-receptors.js';
+import { inhibition } from './inhibition.js';
 
-export const models = { ligand, homodimer, ligands, receptors };
+export const models = { ligand, homodimer, ligands, receptors, inhibition };
 
 const byAppmode = {};
 for (const m of Object.values(models)) byAppmode[m.legacyAppmode] = m;

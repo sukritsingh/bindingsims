@@ -46,8 +46,14 @@ import * as solversMod from './solvers.js';
 import * as formatMod from './format.js';
 import * as fitMod from './fit.js';
 import { models, modelByAppmode, datalabels } from '../models/index.js';
+import { enzyme_rate, ic50 } from '../models/inhibition.js';
 
 Object.assign(window, expvalMod, solversMod, formatMod, fitMod);
+
+// Enzyme-inhibition helpers (feature/07): the classic buildFigure enzyme case
+// calls these directly to draw the v-vs-[S] family and the IC50 readout.
+window.enzyme_rate = enzyme_rate;
+window.ic50 = ic50;
 
 // The model registry (refactor/03). The classic code calls modelByAppmode(...)
 // for the fitter's solver dispatch and the axis titles, and reads datalabels[]

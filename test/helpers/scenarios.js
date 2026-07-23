@@ -41,6 +41,14 @@ export const SCENARIOS = {
     { name: 'spec-free',    yradio: 7, xradio: 4 },
     { name: 'alt-sliders',  yradio: 5, xradio: 3, sliders: { 5: 150, 10: 100, 3: 120, 7: 120, 9: 150 } },
   ],
+  // Enzyme inhibition (feature/07): yradio 1=rate, 2=relative; xradio 3=log[S], 4=linear[S].
+  inhibition: [
+    { name: 'competitive-log',    yradio: 1, xradio: 3, mech: 'competitive' },
+    { name: 'competitive-rel',    yradio: 2, xradio: 3, mech: 'competitive' },
+    { name: 'uncompetitive-log',  yradio: 1, xradio: 3, mech: 'uncompetitive' },
+    { name: 'noncompetitive-rel', yradio: 2, xradio: 3, mech: 'noncompetitive' },
+    { name: 'mixed-linear',       yradio: 1, xradio: 4, mech: 'mixed', sliders: { 11: 150, 13: 100 } },
+  ],
 };
 
 /** Load a page, apply a scenario, run update(), and return the live window. */
@@ -58,6 +66,8 @@ export function runScenario(pageKey, sc) {
       w.slider_input(Number(idx), true);   // recompute global, no update
     }
   }
+
+  if (sc.mech) w.inhib_mech = sc.mech;   // enzyme-inhibition mechanism
 
   if (sc.yradio) w.radio_input(sc.yradio, true);
   if (sc.xradio) w.radio_input(sc.xradio, true);

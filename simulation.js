@@ -45,6 +45,14 @@ var Q_0 = 1;
 var K_D = 1;
 var K_D2 = 1;
 
+// Enzyme-inhibition model (feature/07). [S] reuses S_0, [E]_0 reuses E_0.
+var kcat = 1;
+var Km = 1;
+var I0 = 1;
+var Ki = 1;
+var Ki2 = 1;
+var inhib_mech = "competitive";
+
 var scale_absolute = 1;
 var xscale_alternative = false;
 
@@ -73,6 +81,7 @@ var appmode_ligands   = 0;
 var appmode_receptors = 1;
 var appmode_ligand    = 2;
 var appmode_homodimer = 3;
+var appmode_enzyme    = 4;
 
 var value_digits = newdecadescale ? 1 : 2;
 
@@ -425,6 +434,41 @@ function slider_input(index, noupdate, nocalculate)
 			unitstr = "l\xA0mol<sup>\u22121</sup>";
 			break;
 		}
+		case 2: // Km (enzyme inhibition)
+		{
+			if(!nocalculate) Km = expval_wrap(rawval, index);
+			val = Km;
+			unitstr = "mol\xA0l<sup>\u22121</sup>";
+			break;
+		}
+		case 4: // kcat (enzyme inhibition)
+		{
+			if(!nocalculate) kcat = expval_wrap(rawval, index);
+			val = kcat;
+			unitstr = "s<sup>\u22121</sup>";
+			break;
+		}
+		case 11: // [I]_0 inhibitor (enzyme inhibition)
+		{
+			if(!nocalculate) I0 = expval_wrap(rawval, index);
+			val = I0;
+			unitstr = "mol\xA0l<sup>\u22121</sup>";
+			break;
+		}
+		case 12: // K_i (enzyme inhibition)
+		{
+			if(!nocalculate) Ki = expval_wrap(rawval, index);
+			val = Ki;
+			unitstr = "mol\xA0l<sup>\u22121</sup>";
+			break;
+		}
+		case 13: // K_i' (enzyme inhibition)
+		{
+			if(!nocalculate) Ki2 = expval_wrap(rawval, index);
+			val = Ki2;
+			unitstr = "mol\xA0l<sup>\u22121</sup>";
+			break;
+		}
 	}
 	
 	var abs = Math.abs(val);
@@ -455,6 +499,12 @@ function slider_input(index, noupdate, nocalculate)
 	}
 	
 	if(!noupdate) update();
+}
+
+function mechanism_input(value)
+{
+	inhib_mech = value;
+	update();
 }
 
 function radio_input(index, noupdate)

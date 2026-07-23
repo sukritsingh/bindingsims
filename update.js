@@ -875,6 +875,96 @@ function buildFigure(ctx, recalculate)
 			
 			break;
 		}
+		case appmode_enzyme:
+		{
+			// Enzyme inhibition: a family of v-vs-[S] curves at several [I]. No species
+			// populations, so no pie and no data table (cd/cm stay undefined).
+			var p_enz = { kcat: kcat, E0: E_0, Km: Km, Ki: Ki, KiP: Ki2, mechanism: inhib_mech };
+			var Vmax = kcat * E_0;
+			var imults = [0, 0.5, 1, 2, 4];
+			var enz_cols = [colour3, colour6, colour4, colour2, colour1];
+
+			for(t = 0; t < 5; t++)
+			{
+				curves[t] = [];
+				colours[t] = enz_cols[t];
+				legends[t] = t;
+				labels[t] = "\uEEE8[I] = " + (imults[t] === 0 ? "0" : ((imults[t] === 1 ? "" : imults[t] + " ") + "I\uEEEA0"));
+			}
+
+			curves[5] = [];
+			colours[5] = colour5;
+			legends[5] = null;
+			labels[5] = "\uEEEC[S]\uEEEA0";
+
+			if(xscale_alternative) // linear [S]
+			{
+				xmin = 0;
+				xmax = 10 * Km;
+				xaxistype = axistype_lin;
+
+				for(h = 0; h <= 20; h += h < 1 ? 1/64 : 1/16)
+				{
+					c = h * xmax / 20;
+					for(t = 0; t < 5; t++)
+					{
+						var vlin = enzyme_rate(p_enz, c, imults[t] * I0);
+						curves[t].push({ x: c, y: scale_absolute ? vlin : vlin / Vmax });
+					}
+				}
+			}
+			else // logarithmic [S]
+			{
+				xmin = decadeshift - 10;
+				xmax = decadeshift;
+				xaxistype = axistype_log;
+
+				for(h = decadeshift - 10; h <= decadeshift; h += 1/32)
+				{
+					c = Math.pow(10, h);
+					for(t = 0; t < 5; t++)
+					{
+						var vlog = enzyme_rate(p_enz, c, imults[t] * I0);
+						curves[t].push({ x: h, y: scale_absolute ? vlog : vlog / Vmax });
+					}
+				}
+			}
+
+			ymin = 0;
+			ymax = (scale_absolute ? Vmax : 1) * 1.05;
+			yaxistype = axistype_lin;
+
+			// vertical marker at the current substrate [S]_0
+			var sx = xscale_alternative ? S_0 : Math.log10(S_0);
+			if(sx >= xmin && sx <= (xscale_alternative ? 1.0001 * xmax : xmax))
+			{
+				curves[5][0] = { x: sx, y: ymin };
+				curves[5][1] = { x: sx, y: ymax + 6 * (ymax - ymin) / ca_height };
+			}
+			else
+			{
+				curves[5] = undefined;
+			}
+
+			pie = [];
+
+			// IC50 (Cheng-Prusoff) readout at the current substrate [S]_0
+			var ic50_label = document.getElementById("ic50_label");
+			if(ic50_label)
+			{
+				var ic50val = ic50(p_enz, S_0);
+				if(Number.isFinite(ic50val) && ic50val > 0)
+				{
+					var mag = Math.floor(Math.log10(ic50val));
+					ic50_label.innerHTML = (mag === 0 ? ic50val.toFixed(value_digits)
+						: (ic50val / Math.pow(10, mag)).toFixed(value_digits) + "\xA0\u22C5\xA010<sup>" + mag + "</sup>")
+						+ "\xA0mol\xA0l<sup>\u22121</sup>";
+				}
+				else ic50_label.innerHTML = "\u2014";
+			}
+
+			break;
+		}
 	}
 	
 	ctx.cd = cd;

@@ -58,7 +58,7 @@
 		? new URL(scriptEl.dataset.base, document.baseURI)
 		: (scriptEl && scriptEl.src ? new URL(".", scriptEl.src) : new URL(".", document.baseURI));
 
-	var MODELS = { ligand: 1, homodimer: 1, ligands: 1, receptors: 1 };
+	var MODELS = { ligand: 1, homodimer: 1, ligands: 1, receptors: 1, inhibition: 1 };
 
 	function cssLen(v) {
 		return /^[0-9.]+$/.test(v) ? v + "px" : v;

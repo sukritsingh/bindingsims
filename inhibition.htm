@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+
+<!--
+	BINDING SIMULATIONS: Enzyme inhibition simulation
+
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 2
+	of the License, or (at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+
+<!--
+	The GNU General Public License, version 2, is available at:
+	(1) the file LICENSE in this folder
+	(2) https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+-->
+
+<!--
+	If you use this in your own research, please cite: https://doi.org/10.1021/acsomega.2c00560
+-->
+
+		<title>Enzyme inhibition simulation</title>
+		<link rel="stylesheet" type="text/css" href="style.css" />
+		<script src="theme.js"></script>
+		<script src="simulation.js"></script>
+		<script src="calculations.js"></script>
+		<script src="update.js"></script>
+		<script type="module" src="core/bootstrap.js"></script>
+		<noscript>
+			<link rel="stylesheet" type="text/css" href="noscript.css" />
+		</noscript>
+	</head>
+	<body onload="init();">
+		<header>
+			<button type="button" id="theme_toggle" onclick="toggle_theme();">Dark mode</button>
+			<h1>Enzyme inhibition simulation</h1>
+		</header>
+		<main>
+			<p id="nojavascript">JavaScript must be enabled in your browser for the page to function.</p>
+			<table class="reactiontable">
+				<tr><td>E&#x2002;+&#x2002;S&#x2002;&#x21CC;&#x2002;ES&#x2002;&#x2192;&#x2002;E&#x2002;+&#x2002;P</td><td>(<var>K</var><sub>M</sub>,&nbsp;<var>k</var><sub>cat</sub>)</td></tr>
+				<tr><td>E&#x2002;+&#x2002;I&#x2002;&#x21CC;&#x2002;EI</td><td>(<var>K</var><sub>i</sub>)</td></tr>
+				<tr><td>ES&#x2002;+&#x2002;I&#x2002;&#x21CC;&#x2002;ESI</td><td>(<var>K</var><sub>i</sub>&prime;)</td></tr>
+			</table>
+			<table id="slidertable">
+				<tr>
+					<td title="Enzyme concentration"><var>c</var><sub>E</sub></td>
+					<td class="valuecol">=&nbsp;<span id="value5"></span></td>
+					<td><input id="slider5" class="slider" type="range" value="120" min="0" max="240" oninput="slider_input(5);" /></td>
+				</tr>
+				<tr>
+					<td title="Substrate concentration (the readout / marker point; the x-axis sweeps [S])"><var>c</var><sub>S</sub></td>
+					<td class="valuecol">=&nbsp;<span id="value3"></span></td>
+					<td><input id="slider3" class="slider" type="range" value="135" min="0" max="240" oninput="slider_input(3);" /></td>
+				</tr>
+				<tr>
+					<td title="Turnover number"><var>k</var><sub>cat</sub></td>
+					<td class="valuecol">=&nbsp;<span id="value4"></span></td>
+					<td><input id="slider4" class="slider" type="range" value="60" min="0" max="240" oninput="slider_input(4);" /></td>
+				</tr>
+				<tr>
+					<td title="Michaelis constant"><var>K</var><sub>M</sub></td>
+					<td class="valuecol">=&nbsp;<span id="value2"></span></td>
+					<td><input id="slider2" class="slider" type="range" value="120" min="0" max="240" oninput="slider_input(2);" /></td>
+				</tr>
+				<tr>
+					<td title="Inhibitor concentration"><var>c</var><sub>I</sub></td>
+					<td class="valuecol">=&nbsp;<span id="value11"></span></td>
+					<td><input id="slider11" class="slider" type="range" value="120" min="0" max="240" oninput="slider_input(11);" /></td>
+				</tr>
+				<tr>
+					<td title="Inhibition constant (inhibitor binding to free enzyme)"><var>K</var><sub>i</sub></td>
+					<td class="valuecol">=&nbsp;<span id="value12"></span></td>
+					<td><input id="slider12" class="slider" type="range" value="120" min="0" max="240" oninput="slider_input(12);" /></td>
+				</tr>
+				<tr>
+					<td title="Inhibition constant (inhibitor binding to the ES complex; used for mixed)"><var>K</var><sub>i</sub>&prime;</td>
+					<td class="valuecol">=&nbsp;<span id="value13"></span></td>
+					<td><input id="slider13" class="slider" type="range" value="120" min="0" max="240" oninput="slider_input(13);" /></td>
+				</tr>
+			</table>
+			<table>
+				<tr>
+					<td>Inhibition mechanism:</td>
+					<td>
+						<select id="inhib_mech_select" class="radio" onchange="mechanism_input(this.value);">
+							<option value="none">none (no inhibitor)</option>
+							<option value="competitive" selected>competitive</option>
+							<option value="uncompetitive">uncompetitive</option>
+							<option value="noncompetitive">non-competitive</option>
+							<option value="mixed">mixed</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td class="grey" title="Half-inhibitory concentration at the current [S] (Cheng&ndash;Prusoff)">IC<sub>50</sub></td>
+					<td class="valuecol2 grey">=&nbsp;<span id="ic50_label">&mdash;</span></td>
+				</tr>
+			</table>
+			<table>
+				<tr id="ext_dsrow">
+					<td title="Slides the slider and plot range up or down by whole orders of magnitude (powers of ten). 0 = default (~nM to mM); use + or - to explore higher or lower concentrations.">Shift concentration range (powers of 10):</td>
+					<td><input type="number" min="-9" max="4" value="0" class="radio" id="ext_dsinput" title="Slides the slider and plot range up or down by whole orders of magnitude (powers of ten). 0 = default (~nM to mM); use + or - to explore higher or lower concentrations." /></td>
+				</tr>
+				<tr>
+					<td>Vertical scale:</td>
+					<td>
+						<label title="Reaction rate v (mol l⁻¹ s⁻¹)"><input id="radio1" name="yaxis" class="radio" type="radio" onchange="radio_input(1);" checked />&nbsp;Reaction rate</label><br />
+						<label title="Rate relative to the uninhibited Vmax (0 to 1)"><input id="radio2" name="yaxis" class="radio" type="radio" onchange="radio_input(2);" />&nbsp;Relative rate</label>
+					</td>
+				</tr>
+				<tr>
+					<td>Horizontal axis:</td>
+					<td>
+						<label title="Substrate concentration, logarithmic axis"><input id="radio3" name="xaxis" class="radio" type="radio" onchange="radio_input(3);" checked />&nbsp;Substrate concentration (log axis)</label><br />
+						<label title="Substrate concentration, linear axis"><input id="radio4" name="xaxis" class="radio" type="radio" onchange="radio_input(4);" />&nbsp;Substrate concentration (linear axis)</label>
+					</td>
+				</tr>
+			</table>
+			<div id="figure_div">
+				<svg xmlns="http://www.w3.org/2000/svg" id="figure_svg" width="96%" height="100%" viewBox="0 0 600 450" preserveAspectRatio="none" style="font-family: Arial, Helvetica, sans-serif; font-size: 12px">
+					<rect x="0" y="0" width="100%" height="100%" style="fill: white; stroke: none;" />
+					<g id="svg_curvegroup" style="fill: none; stroke-width: 3px; stroke-linejoin: round; stroke-linecap: butt;"></g>
+					<g id="svg_datapointgroup"></g>
+					<g id="svg_overlaygroup"></g>
+					<g id="svg_linegroup" style="fill: none; stroke: black; stroke-width: 3px;"></g>
+					<g id="svg_legendgroup"></g>
+					<g id="svg_piegroup"></g>
+					<g id="svg_scribblegroup"></g>
+				</svg>
+			</div>
+			<input type="button" value="Export graphic (SVG)" id="export_button" />
+			<hr />
+			<h2><a href="javascript:toggle_calcdiv();"><span id="toggle_calcdiv_symbol">&#x25BC;</span> Curve fitting</a></h2>
+			<div id="calcdiv" style="display:none;">
+				<input type="checkbox" id="toggle_calcdiv_checkbox" style="display:none" />
+				<p id="calcinfo">Give a list of pairs of values: <strong><var>x</var>-value&nbsp;<var>y</var>-value</strong> (substrate concentration and reaction rate,<br />
+					at the current inhibitor concentration). The rate curve is least-squares fitted by moving the selected sliders.<br />
+					Note that this is not a proper analytical tool. Results are imprecise and possibly inaccurate.</p>
+				<table id="calctable">
+					<tr>
+						<td><textarea id="databox" cols="24" rows="16"></textarea></td>
+						<td>
+							<table>
+								<tr>
+									<td colspan="2">Calculation method:<br />
+										<label><input type="radio" name="calcmode" id="calcmode1" checked />&nbsp;Two-pass search (fast)</label><br />
+										<label><input type="radio" name="calcmode" id="calcmode2"         />&nbsp;Single-pass search (slow)</label><br />
+										<label><input type="radio" name="calcmode" id="calcmode3"         />&nbsp;Iterative search (converges from the given values)</label><br id="ext_pisbr" />
+
+										<label id="ext_pisrow"><input type="radio" name="calcmode" id="calcmode4" />&nbsp;Precise iterative search (unfinished, may be unstable!)</label><br id="ext_lrbr" />
+										<label id="ext_lrrow"><input type="checkbox" id="ext_calcmode_log" />&nbsp;Logarithmic residuals</label>
+									</td>
+								</tr>
+								<tr>
+									<td colspan="2">Fit these parameters:<br />
+										<label><input id="fixval4" class="fixval" type="checkbox" checked /><span id="fixlabel4"><span class="ext_hiddenlabel">kcat</span>&nbsp;<var>k</var><sub>cat</sub></span></label><br />
+										<label><input id="fixval2" class="fixval" type="checkbox" checked /><span id="fixlabel2"><span class="ext_hiddenlabel">Km</span>&nbsp;<var>K</var><sub>M</sub></span></label><br />
+										<label><input id="fixval12" class="fixval" type="checkbox" /><span id="fixlabel12"><span class="ext_hiddenlabel">Ki</span>&nbsp;<var>K</var><sub>i</sub></span></label><br />
+										<label><input id="fixval13" class="fixval" type="checkbox" /><span id="fixlabel13"><span class="ext_hiddenlabel">Ki'</span>&nbsp;<var>K</var><sub>i</sub>&prime;</span></label>
+										<!-- populate m[] for the solver but not fitted: -->
+										<input id="fixval5" class="fixval" type="checkbox" style="display:none" /><span id="fixlabel5" style="display:none">E0</span>
+										<input id="fixval11" class="fixval" type="checkbox" style="display:none" /><span id="fixlabel11" style="display:none">I0</span>
+									</td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+				<input type="button" value="Calculate" id="calcbutton"
+				/><span id="calcstatus" style="margin-left:1em;color:green">Waiting for input.</span>
+			</div>
+		</main>
+		<footer>
+			<hr />
+			<p id="ext_extmessage">For some extra features not described in the original paper, append <a class="ext_codeword" href="?ext">?ext</a> to the URL.<br />
+				This option will be retained in intra-site links, and it can be saved in a bookmark.<br />
+				Description of the extra features: <a href="extensions.htm">extensions</a></p>
+			<h2>Other pages</h2>
+			<nav id="linkarea">
+				<a href="ligand.htm">Ligand binding simulation</a>
+				<br /><br />
+				<a href="ligands.htm">Competing ligands simulation</a>
+				<br /><br />
+				<a href="receptors.htm">Competing receptors simulation</a>
+				<br /><br />
+				<a href="homodimer.htm">Protein homodimerisation simulation</a>
+			</nav>
+			<div id="credits">
+				Shamelessly Inspired by Johan P&auml;&auml;kk&ouml;nen, Juha Rouvinen, and Markus Seeliger<br />
+				<a href="https://doi.org/10.1021/acsomega.2c00560">doi:10.1021/acsomega.2c00560</a><span id="ext_desclink"><br />
+			</div>
+		</footer>
+		<script>preinit(appmode_enzyme);</script>
+	</body>
+</html>
