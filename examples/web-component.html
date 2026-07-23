@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>bindingsims — web component example</title>
+		<!-- Include the component once. It resolves the sim pages relative to its
+		     own URL, so host binding-sim.js alongside the .htm files. -->
+		<script src="../binding-sim.js"></script>
+		<style>
+			:root { color-scheme: light; }
+			body { font-family: system-ui, Arial, sans-serif; max-width: 820px; margin: 2em auto; padding: 0 1em; line-height: 1.5; background: #fff; color: #1b1b1d; }
+			pre { background: #f4f4f4; padding: 0.75em 1em; overflow-x: auto; border-radius: 6px; }
+			binding-sim { display: block; margin: 1.5em 0; border: 1px solid #ccc; border-radius: 6px; overflow: hidden; }
+		</style>
+	</head>
+	<body>
+		<h1>Embedding with &lt;binding-sim&gt;</h1>
+		<p>Include the script once, then drop the <code>&lt;binding-sim&gt;</code>
+		tag anywhere. Each element is an independent, isolated instance (it wraps an
+		iframe), so you can place several on one page without conflicts.</p>
+
+		<pre>&lt;script src="https://your-host/bindingsims/binding-sim.js"&gt;&lt;/script&gt;
+
+&lt;binding-sim model="ligand"&gt;&lt;/binding-sim&gt;
+&lt;binding-sim model="receptors" ext height="1000"&gt;&lt;/binding-sim&gt;</pre>
+
+		<p>Attributes: <code>model</code> (required — ligand, homodimer, ligands,
+		receptors), <code>ext</code> (boolean, power-user features),
+		<code>theme</code> (dark/light, same-origin), <code>height</code> /
+		<code>width</code> (CSS length; a bare number means pixels).</p>
+
+		<h2>Ligand binding</h2>
+		<binding-sim model="ligand"></binding-sim>
+
+		<h2>Competing receptors (taller frame)</h2>
+		<binding-sim model="receptors" height="1000"></binding-sim>
+	</body>
+</html>
